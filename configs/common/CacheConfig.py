@@ -53,11 +53,11 @@ def config_cache(options, system):
     if options.external_memory_system:
         ExternalCache = ExternalCacheFactory(options.external_memory_system)
 
-    if options.cpu_type == "O3_ARM_v7a_3":
+    if options.cpu_type == "arm_detailed":
         try:
-            from cores.arm.O3_ARM_v7a import *
+            from O3_ARM_v7a import *
         except:
-            print "O3_ARM_v7a_3 is unavailable. Did you compile the O3 model?"
+            print "arm_detailed is unavailable. Did you compile the O3 model?"
             sys.exit(1)
 
         dcache_class, icache_class, l2_cache_class, walk_cache_class = \
@@ -161,6 +161,11 @@ def config_cache(options, system):
             system.cpu[i].connectUncachedPorts(system.membus)
         else:
             system.cpu[i].connectAllPorts(system.membus)
+
+        # Add a snoop filter to the membus if there are caches above it
+       # if (options.l2cache or options.caches) and \
+       # (system.membus.snoop_filter == NULL):
+       #     system.membus.snoop_filter = SnoopFilter()
 
     return system
 

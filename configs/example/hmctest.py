@@ -6,15 +6,14 @@ import m5
 from m5.objects import *
 from m5.util import addToPath
 
-addToPath('../')
-
-from common import MemConfig
-from common import HMC
+addToPath('../common')
+import MemConfig
+import HMC
 
 parser = optparse.OptionParser()
 
-# Use a HMC_2500_1x32 (1 channel, 32-bits wide) by default
-parser.add_option("--mem-type", type = "choice", default = "HMC_2500_1x32",
+# Use a HMC_2500_x32 by default
+parser.add_option("--mem-type", type = "choice", default = "HMC_2500_x32",
                   choices = MemConfig.mem_names(),
                   help = "type of memory to use")
 

@@ -38,11 +38,12 @@ from m5.objects import *
 from m5.defines import buildEnv
 from m5.util import addToPath
 import os, optparse, sys
+addToPath('../common')
+addToPath('../ruby')
+addToPath('../topologies')
 
-addToPath('../')
-
-from common import Options
-from ruby import Ruby
+import Options
+import Ruby
 
 # Get paths we might need.
 config_path = os.path.dirname(os.path.abspath(__file__))
@@ -50,7 +51,7 @@ config_root = os.path.dirname(config_path)
 m5_root = os.path.dirname(config_root)
 
 parser = optparse.OptionParser()
-Options.addNoISAOptions(parser)
+Options.addCommonOptions(parser)
 
 parser.add_option("--maxloads", metavar="N", default=100,
                   help="Stop after N loads")

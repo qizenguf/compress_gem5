@@ -37,6 +37,8 @@ import sys
 import m5
 from m5.objects import *
 
+m5.util.addToPath('../common')
+
 # --------------------
 # Define Command Line Options
 # ====================
@@ -76,56 +78,56 @@ if args:
 # --------------------
 # Define Splash2 Benchmarks
 # ====================
-class Cholesky(Process):
+class Cholesky(LiveProcess):
         executable = options.rootdir + '/kernels/cholesky/CHOLESKY'
         cmd = 'CHOLESKY -p' + str(options.numcpus) + ' '\
              + options.rootdir + '/kernels/cholesky/inputs/tk23.O'
 
-class FFT(Process):
+class FFT(LiveProcess):
         executable = options.rootdir + 'kernels/fft/FFT'
         cmd = 'FFT -p' + str(options.numcpus) + ' -m18'
 
-class LU_contig(Process):
+class LU_contig(LiveProcess):
         executable = options.rootdir + 'kernels/lu/contiguous_blocks/LU'
         cmd = 'LU -p' + str(options.numcpus)
 
-class LU_noncontig(Process):
+class LU_noncontig(LiveProcess):
         executable = options.rootdir + 'kernels/lu/non_contiguous_blocks/LU'
         cmd = 'LU -p' + str(options.numcpus)
 
-class Radix(Process):
+class Radix(LiveProcess):
         executable = options.rootdir + 'kernels/radix/RADIX'
         cmd = 'RADIX -n524288 -p' + str(options.numcpus)
 
-class Barnes(Process):
+class Barnes(LiveProcess):
         executable = options.rootdir + 'apps/barnes/BARNES'
         cmd = 'BARNES'
         input = options.rootdir + 'apps/barnes/input.p' + str(options.numcpus)
 
-class FMM(Process):
+class FMM(LiveProcess):
         executable = options.rootdir + 'apps/fmm/FMM'
         cmd = 'FMM'
         input = options.rootdir + 'apps/fmm/inputs/input.2048.p' + str(options.numcpus)
 
-class Ocean_contig(Process):
+class Ocean_contig(LiveProcess):
         executable = options.rootdir + 'apps/ocean/contiguous_partitions/OCEAN'
         cmd = 'OCEAN -p' + str(options.numcpus)
 
-class Ocean_noncontig(Process):
+class Ocean_noncontig(LiveProcess):
         executable = options.rootdir + 'apps/ocean/non_contiguous_partitions/OCEAN'
         cmd = 'OCEAN -p' + str(options.numcpus)
 
-class Raytrace(Process):
+class Raytrace(LiveProcess):
         executable = options.rootdir + 'apps/raytrace/RAYTRACE'
         cmd = 'RAYTRACE -p' + str(options.numcpus) + ' ' \
              + options.rootdir + 'apps/raytrace/inputs/teapot.env'
 
-class Water_nsquared(Process):
+class Water_nsquared(LiveProcess):
         executable = options.rootdir + 'apps/water-nsquared/WATER-NSQUARED'
         cmd = 'WATER-NSQUARED'
         input = options.rootdir + 'apps/water-nsquared/input.p' + str(options.numcpus)
 
-class Water_spatial(Process):
+class Water_spatial(LiveProcess):
         executable = options.rootdir + 'apps/water-spatial/WATER-SPATIAL'
         cmd = 'WATER-SPATIAL'
         input = options.rootdir + 'apps/water-spatial/input.p' + str(options.numcpus)

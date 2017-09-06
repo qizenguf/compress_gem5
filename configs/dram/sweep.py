@@ -40,11 +40,11 @@ import optparse
 import m5
 from m5.objects import *
 from m5.util import addToPath
-from m5.stats import periodicStatDump
+from m5.internal.stats import periodicStatDump
 
-addToPath('../')
+addToPath('../common')
 
-from common import MemConfig
+import MemConfig
 
 # this script is helpful to sweep the efficiency of a specific memory
 # controller configuration, by varying the number of banks accessed,
@@ -53,7 +53,7 @@ from common import MemConfig
 
 parser = optparse.OptionParser()
 
-# Use a single-channel DDR3-1600 x64 (8x8 topology) by default
+# Use a single-channel DDR3-1600 x64 by default
 parser.add_option("--mem-type", type="choice", default="DDR3_1600_8x8",
                   choices=MemConfig.mem_names(),
                   help = "type of memory to use")

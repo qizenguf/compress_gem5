@@ -51,17 +51,17 @@ from m5.defines import buildEnv
 from m5.objects import *
 from m5.util import addToPath, fatal
 
-addToPath('../')
+addToPath('../common')
+addToPath('../ruby')
 
-from ruby import Ruby
-
-from common import Options
-from common import Simulation
-from common import CacheConfig
-from common import CpuConfig
-from common import MemConfig
-from common.Caches import *
-from common.cpu2000 import *
+import Options
+import Ruby
+import Simulation
+import CacheConfig_l3
+import CpuConfig
+import MemConfig
+from Caches_l3 import *
+from cpu2000 import *
 
 # Check if KVM support has been enabled, we might need to do VM
 # configuration if that's the case.
@@ -91,7 +91,7 @@ def get_processes(options):
 
     idx = 0
     for wrkld in workloads:
-        process = Process(pid = 100 + idx)
+        process = LiveProcess()
         process.executable = wrkld
         process.cwd = os.getcwd()
 
@@ -115,7 +115,7 @@ def get_processes(options):
         idx += 1
 
     if options.smt:
-        assert(options.cpu_type == "DerivO3CPU")
+        assert(options.cpu_type == "detailed")
         return multiprocesses, idx
     else:
         return multiprocesses, 1
@@ -154,7 +154,7 @@ if options.bench:
             else:
                 exec("workload = %s(buildEnv['TARGET_ISA', 'linux', '%s')" % (
                         app, options.spec_input))
-            multiprocesses.append(workload.makeProcess())
+            multiprocesses.append(workload.makeLiveProcess())
         except:
             print >>sys.stderr, "Unable to find workload for %s: %s" % (
                     buildEnv['TARGET_ISA'], app)
@@ -176,7 +176,7 @@ if options.smt and options.num_cpus > 1:
 np = options.num_cpus
 system = System(cpu = [CPUClass(cpu_id=i) for i in xrange(np)],
                 mem_mode = test_mem_mode,
-                mem_ranges = [AddrRange(options.mem_size)],
+                mem_ranges = [AddrRange("4096MB")],
                 cache_line_size = options.cacheline_size)
 
 if numThreads > 1:
@@ -209,7 +209,7 @@ for cpu in system.cpu:
 
 if is_kvm_cpu(CPUClass) or is_kvm_cpu(FutureClass):
     if buildEnv['TARGET_ISA'] == 'x86':
-        system.kvm_vm = KvmVM()
+        system.vm = KvmVM()
         for process in multiprocesses:
             process.useArchPT = True
             process.kvmInSE = True
@@ -250,7 +250,7 @@ for i in xrange(np):
     system.cpu[i].createThreads()
 
 if options.ruby:
-    if options.cpu_type == "AtomicSimpleCPU":
+    if options.cpu_type == "atomic" or options.cpu_type == "AtomicSimpleCPU":
         print >> sys.stderr, "Ruby does not work with atomic cpu!!"
         sys.exit(1)
 
@@ -280,7 +280,7 @@ else:
     MemClass = Simulation.setMemClass(options)
     system.membus = SystemXBar()
     system.system_port = system.membus.slave
-    CacheConfig.config_cache(options, system)
+    CacheConfig_l3.config_cache(options, system)
     MemConfig.config_mem(options, system)
 
 root = Root(full_system = False, system = system)

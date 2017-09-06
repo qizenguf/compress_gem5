@@ -46,13 +46,13 @@ import m5
 from m5.objects import *
 
 # Add the common scripts to our path
-m5.util.addToPath('../../')
+m5.util.addToPath('../../common')
 
 # import the caches which we made
 from caches import *
 
 # import the SimpleOpts module
-from common import SimpleOpts
+import SimpleOpts
 
 # Set the usage message to display
 SimpleOpts.set_usage("usage: %prog [options] <binary to execute>")
@@ -128,12 +128,12 @@ if m5.defines.buildEnv['TARGET_ISA'] == "x86":
 system.system_port = system.membus.slave
 
 # Create a DDR3 memory controller
-system.mem_ctrl = DDR3_1600_8x8()
+system.mem_ctrl = DDR3_1600_x64()
 system.mem_ctrl.range = system.mem_ranges[0]
 system.mem_ctrl.port = system.membus.master
 
 # Create a process for a simple "Hello World" application
-process = Process()
+process = LiveProcess()
 # Set the command
 # cmd is a list which begins with the executable (like argv)
 process.cmd = [binary]

@@ -38,7 +38,6 @@
 #
 # Authors: Lisa Hsu
 
-from m5.defines import buildEnv
 from m5.objects import *
 
 # Base implementations of L1, L2, IO and TLB-walker caches. There are
@@ -46,12 +45,11 @@ from m5.objects import *
 # system-configuration scripts. The values are meant to serve as a
 # starting point, and specific parameters can be overridden in the
 # specific instantiations.
-
 class L1Cache(Cache):
     assoc = 2
-    tag_latency = 2
-    data_latency = 2
+    hit_latency = 2
     response_latency = 2
+    write_latency = 2
     mshrs = 4
     tgts_per_mshr = 20
 
@@ -63,19 +61,28 @@ class L1_ICache(L1Cache):
 class L1_DCache(L1Cache):
     pass
 
-class L2Cache(Cache):
+class L2Cache(Cache):    
+    #tags = eval('LRU()')
     assoc = 8
-    tag_latency = 20
-    data_latency = 20
+    hit_latency = 20
+    write_latency = 100
     response_latency = 20
     mshrs = 20
     tgts_per_mshr = 12
     write_buffers = 8
 
+class L3Cache(Cache):
+    assoc = 32
+    hit_latency = 30
+    write_latency = 150
+    response_latency = 20
+    mshrs = 80
+    tgts_per_mshr = 64
+    write_buffers = 256
+
 class IOCache(Cache):
     assoc = 8
-    tag_latency = 50
-    data_latency = 50
+    hit_latency = 50
     response_latency = 50
     mshrs = 20
     size = '1kB'
@@ -83,8 +90,7 @@ class IOCache(Cache):
 
 class PageTableWalkerCache(Cache):
     assoc = 2
-    tag_latency = 2
-    data_latency = 2
+    hit_latency = 2
     response_latency = 2
     mshrs = 10
     size = '1kB'

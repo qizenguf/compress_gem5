@@ -41,13 +41,13 @@ import optparse
 
 from m5.util import addToPath, fatal
 
-addToPath('../')
+addToPath('../common')
 
-from common import Options
-from common import Simulation
-from common import CacheConfig
-from common import MemConfig
-from common.Caches import *
+import Options
+import Simulation
+import CacheConfig
+import MemConfig
+from Caches import *
 
 parser = optparse.OptionParser()
 Options.addCommonOptions(parser)
@@ -65,9 +65,9 @@ if args:
 
 numThreads = 1
 
-if options.cpu_type != "TraceCPU":
+if options.cpu_type != "trace":
     fatal("This is a script for elastic trace replay simulation, use "\
-            "--cpu-type=TraceCPU\n");
+            "--cpu-type=trace\n");
 
 if options.num_cpus > 1:
     fatal("This script does not support multi-processor trace replay.\n")

@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 ARM Limited
+# Copyright (c) 2016 ARM Limited
 # All rights reserved.
 #
 # The license below extends only to copyright in the software and shall
@@ -132,7 +132,12 @@ def main():
         root = bL.build(options)
         addEthernet(root.system, options)
 
-    bL.instantiate(options, checkpoint_dir=options.checkpoint_dir)
+    if options.restore_from:
+        checkpoint_path = os.path.join(options.checkpoint_dir,
+                                       options.restore_from)
+    else:
+        checkpoint_path = None
+    bL.instantiate(checkpoint_path)
     bL.run(options.checkpoint_dir)
 
 

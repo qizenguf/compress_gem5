@@ -42,22 +42,11 @@ class Pt2Pt(SimpleTopology):
     def makeTopology(self, options, network, IntLink, ExtLink, Router):
         nodes = self.nodes
 
-        # default values for link latency and router latency.
-        # Can be over-ridden on a per link/router basis
-        link_latency = options.link_latency # used by simple and garnet
-        router_latency = options.router_latency # only used by garnet
-
-        # Create an individual router for each controller,
-        # and connect all to all.
-        # Since this is a high-radix router, router_latency should
-        # accordingly be set to a higher value than the default
-        # (which is 1 for mesh routers)
-        routers = [Router(router_id=i, latency = router_latency) \
-            for i in range(len(nodes))]
+        # Create an individual router for each controller, and connect all to all.
+        routers = [Router(router_id=i) for i in range(len(nodes))]
         network.routers = routers
 
-        ext_links = [ExtLink(link_id=i, ext_node=n, int_node=routers[i],
-                     latency = link_latency)
+        ext_links = [ExtLink(link_id=i, ext_node=n, int_node=routers[i])
                     for (i, n) in enumerate(nodes)]
         network.ext_links = ext_links
 
@@ -68,8 +57,7 @@ class Pt2Pt(SimpleTopology):
                 if (i != j):
                     link_count += 1
                     int_links.append(IntLink(link_id=link_count,
-                                             src_node=routers[i],
-                                             dst_node=routers[j],
-                                             latency = link_latency))
+                                            node_a=routers[i],
+                                            node_b=routers[j]))
 
         network.int_links = int_links

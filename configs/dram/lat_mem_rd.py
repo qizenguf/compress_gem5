@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2016 ARM Limited
+# Copyright (c) 2015 ARM Limited
 # All rights reserved.
 #
 # The license below extends only to copyright in the software and shall
@@ -42,10 +42,10 @@ import os
 import m5
 from m5.objects import *
 from m5.util import addToPath
-from m5.stats import periodicStatDump
+from m5.internal.stats import periodicStatDump
 
-addToPath('../')
-from common import MemConfig
+addToPath('../common')
+import MemConfig
 
 addToPath('../../util')
 import protolib
@@ -247,19 +247,17 @@ cfg_file.write("TRANSITION %d %d 1\n" % (nxt_state - 1, nxt_state - 1))
 cfg_file.close()
 
 # create a traffic generator, and point it to the file we just created
-system.tgen = TrafficGen(config_file = cfg_file_name,
-                         progress_check = '10s')
+system.tgen = TrafficGen(config_file = cfg_file_name)
 
 # add a communication monitor
 system.monitor = CommMonitor()
-system.monitor.footprint = MemFootprintProbe()
 
 # connect the traffic generator to the system
 system.tgen.port = system.monitor.slave
 
 # create the actual cache hierarchy, for now just go with something
 # basic to explore some of the options
-from common.Caches import *
+from Caches import *
 
 # a starting point for an L3 cache
 class L3Cache(Cache):
