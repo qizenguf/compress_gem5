@@ -53,7 +53,7 @@
 #include "base/printable.hh"
 #include "mem/packet.hh"
 #include "mem/request.hh"
-
+#include <unordered_map>
 /**
  * Cache block status bit assignments
  */
@@ -70,6 +70,8 @@ enum CacheBlkStatusBits : unsigned {
     BlkHWPrefetched =   0x20,
     /** block holds data from the secure memory space */
     BlkSecure =         0x40,
+    /** block is not main block **/
+    BlkCompressed =     0x80
 };
 
 /**
@@ -118,7 +120,12 @@ class CacheBlk
     int srcMasterId;
 
     Tick tickInserted;
-
+    //add by Qi
+	int compactSize;
+	int curScheme; // 0 for notdecided, 1 for full, 2 for partial
+	std::unordered_map<uint64_t, int> dictionary;
+	std::unordered_map<uint64_t, int> dictionary2; // for 28-bit entry
+	CacheBlk * next;
   protected:
     /**
      * Represents that the indicated thread context has a "lock" on
@@ -168,8 +175,16 @@ class CacheBlk
           tag(0), data(0), status(0), whenReady(0),
           set(-1), way(-1), isTouched(false), refCount(0),
           srcMasterId(Request::invldMasterId),
-          tickInserted(0)
+          tickInserted(0), compactSize(1), curScheme(0), next(nullptr)
     {}
+    CacheBlk(uint8_t *newdata)
+		:task_id(ContextSwitchTaskId::Unknown),
+          tag(0), data(newdata), status(0), whenReady(0),
+          set(-1), way(-1), isTouched(false), refCount(0),
+          srcMasterId(Request::invldMasterId),
+          tickInserted(0), compactSize(1), curScheme(0), next(nullptr)
+    {}
+
 
     CacheBlk(const CacheBlk&) = delete;
     CacheBlk& operator=(const CacheBlk&) = delete;

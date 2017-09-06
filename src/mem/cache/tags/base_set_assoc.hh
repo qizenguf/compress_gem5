@@ -87,6 +87,9 @@ class BaseSetAssoc : public BaseTags
     const unsigned assoc;
     /** The allocatable associativity of the cache (alloc mask). */
     unsigned allocAssoc;
+    //by Qi
+    const unsigned secSize;    
+    const unsigned entrySize;
     /** The number of sets in the cache. */
     const unsigned numSets;
     /** Whether tags and data are accessed sequentially. */
@@ -104,8 +107,12 @@ class BaseSetAssoc : public BaseTags
     int setShift;
     /** The amount to shift the address to get the tag. */
     int tagShift;
+    /** The amount to shift the address to get the sec#. */
+    int secShift; //by Qi
     /** Mask out all bits that aren't part of the set index. */
     unsigned setMask;
+     /** Mask out all bits that aren't part of the sector index. */
+    unsigned secMask; // by Qi
 
 public:
 
@@ -189,7 +196,7 @@ public:
         } else {
             // If a cache miss
             lat = lookupLatency;
-        }
+        } 
 
         return blk;
     }
@@ -225,7 +232,15 @@ public:
 
         return blk;
     }
-
+	/**
+     * copy the new data into the cache.
+     * @param pkt Packet holding the address to update
+     * @param blk The block to update.
+     */
+     void copyData(PacketPtr pkt, CacheBlk *blk) override
+     {
+	  	 std::memcpy(blk->data, pkt->getConstPtr<uint8_t>(), blkSize);	
+	 }
     /**
      * Insert the new block into the cache.
      * @param pkt Packet holding the address to update
@@ -250,17 +265,18 @@ public:
          // stats for it. This can't be done in findBlock() because a
          // found block might not actually be replaced there if the
          // coherence protocol says it can't be.
-         if (blk->isValid()) {
-             replacements[0]++;
-             totalRefs += blk->refCount;
-             ++sampledRefs;
-             blk->refCount = 0;
+         
+      
+         if (blk->isValid()) {				 
+			 replacements[0]++;
+			 totalRefs += blk->refCount;
+			 ++sampledRefs;
+			 blk->refCount = 0;
 
-             // deal with evicted block
-             assert(blk->srcMasterId < cache->system->maxMasters());
-             occupancies[blk->srcMasterId]--;
-
-             blk->invalidate();
+			 // deal with evicted block
+			 assert(blk->srcMasterId < cache->system->maxMasters());
+			 occupancies[blk->srcMasterId]--;
+			 blk->invalidate();			 
          }
 
          blk->isTouched = true;
@@ -306,7 +322,8 @@ public:
      */
     Addr extractTag(Addr addr) const override
     {
-        return (addr >> tagShift);
+        //return (addr >> tagShift);
+        return (addr >> setShift); // modified by Qi, sector indexing
     }
 
     /**
@@ -316,7 +333,8 @@ public:
      */
     int extractSet(Addr addr) const override
     {
-        return ((addr >> setShift) & setMask);
+        //return ((addr >> setShift) & setMask);
+        return ((addr >> (setShift + secShift)) & setMask); // modified by Qi, sector indexing
     }
 
     /**
@@ -327,7 +345,8 @@ public:
      */
     Addr regenerateBlkAddr(Addr tag, unsigned set) const override
     {
-        return ((tag << tagShift) | ((Addr)set << setShift));
+        //return ((tag << tagShift) | ((Addr)set << setShift));
+        return (tag << setShift); // by Qi
     }
 
     /**
@@ -363,6 +382,64 @@ public:
                 return;
         }
     }
+    /**
+     * Calculate the sector index from the address. by qi
+     * @param addr The address to get the set from.
+     * @return The sector index of the address.
+     */
+    int extractSectorID(Addr addr)
+    {
+        return ((addr >> (setShift)) & secMask);
+    }
+    /**
+     * extract the dictionary from a block.
+     * @param block content and size of dictionary entry.( 8byte at most)
+     * @return dictionary entries vector.
+     */
+    static std::vector<int> extractDict(const uint8_t* blkData, std::unordered_map<uint64_t , int> &oldMap, int blkSize, int entSize, int offsetSize = 0){
+		//unordered_map<uint64_t, int> ret;
+		std::vector<int> ret;
+		int numEnt = blkSize/entSize;
+		//if(size == 65) cout<<"nearby"<<endl;
+		//else cout <<"random"<<endl;
+		for(int i = 0; i<numEnt; i++){
+			uint64_t cur = 0;
+			for(int j = 0; j<entSize; j++) 
+				cur = ((cur<<8) | blkData[ i*entSize + j]);
+			cur = cur >> offsetSize; // offset of each entry
+			if( oldMap.find(cur) == oldMap.end()){
+				//cout<<(uint64_t)ablock[0]<< std::hex<<"  data "<<cur<< "  dic_size " << oldMap.size() << "  offset " << offsetSize <<endl;
+				ret.push_back(oldMap.size());
+				oldMap[cur] = oldMap.size();
+				//ret.push_back(oldMap.size());
+			}else{
+				//cout<<(uint64_t)ablock[0]<< std::hex<<"  data "<<cur<< "  dic_size " << oldMap.size() << "  offset " << offsetSize <<" found"<<endl;
+				ret.push_back(oldMap[cur]);
+			}
+		}
+		return ret;		
+	}
+	
+    bool checkcompressbility(CacheBlk * b, PacketPtr pkt, int entSize) {
+        bool ifCompress = false;
+        std::unordered_map<uint64_t, int> temp(b->dictionary); // protect the dictionary from block and make a copy
+        extractDict(pkt->getConstPtr<uint8_t>(), temp, 65, entSize, 0);
+        if(b->curScheme != 2 && temp.size() <= 8 ) {                
+            b->dictionary = temp;       
+            b->curScheme = 1;       
+            ifCompress = true;
+        }
+        std::unordered_map<uint64_t, int> temp2(b->dictionary2);
+        extractDict(pkt->getConstPtr<uint8_t>(), temp2, 65, entSize, 4); // higher priority for scheme2
+        if(b->curScheme != 1 && temp.size() <= 4 ) {
+
+            b->dictionary2 = temp2;
+            b->curScheme = 2;
+            ifCompress = true;
+        }
+        return ifCompress;
+        
+     }
 };
 
 #endif // __MEM_CACHE_TAGS_BASESETASSOC_HH__

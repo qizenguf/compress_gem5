@@ -60,6 +60,7 @@
 #include "mem/cache/blk.hh"
 #include "mem/cache/mshr.hh"
 #include "mem/cache/tags/base.hh"
+#include "mem/cache/tags/base_set_assoc.hh"
 #include "params/Cache.hh"
 #include "sim/eventq.hh"
 
@@ -308,7 +309,7 @@ class Cache : public BaseCache
      * @param blk The block that should potentially be dropped
      */
     void maintainClusivity(bool from_cache, CacheBlk *blk);
-
+    CacheBlk * writebackCompressedBlk(CacheBlk * blk, PacketList &writebacks);
     /**
      * Populates a cache block and handles all outstanding requests for the
      * satisfied fill request. This version takes two memory requests. One

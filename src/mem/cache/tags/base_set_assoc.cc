@@ -55,7 +55,7 @@
 using namespace std;
 
 BaseSetAssoc::BaseSetAssoc(const Params *p)
-    :BaseTags(p), assoc(p->assoc), allocAssoc(p->assoc),
+    :BaseTags(p), assoc(p->assoc), allocAssoc(p->assoc), secSize(p->sector_size), entrySize(p->entry_size),
      numSets(p->size / (p->block_size * p->assoc)),
      sequentialAccess(p->sequential_access)
 {
@@ -72,6 +72,8 @@ BaseSetAssoc::BaseSetAssoc(const Params *p)
 
     setShift = floorLog2(blkSize);
     setMask = numSets - 1;
+    secShift = floorLog2(secSize); // add by Qi
+    secMask = secSize - 1;
     tagShift = setShift + floorLog2(numSets);
     /** @todo Make warmup percentage a parameter. */
     warmupBound = numSets * assoc;
@@ -80,12 +82,12 @@ BaseSetAssoc::BaseSetAssoc(const Params *p)
     blks = new BlkType[numSets * assoc];
     // allocate data storage in one big chunk
     numBlocks = numSets * assoc;
-    dataBlks = new uint8_t[numBlocks * blkSize];
+    dataBlks = new uint8_t[numBlocks * blkSize * secSize];
 
     unsigned blkIndex = 0;       // index into blks array
     for (unsigned i = 0; i < numSets; ++i) {
         sets[i].assoc = assoc;
-
+		sets[i].secSize = secSize; //add by Qi
         sets[i].blks = new BlkType*[assoc];
 
         // link in the data blocks

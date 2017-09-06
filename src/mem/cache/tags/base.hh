@@ -71,6 +71,10 @@ class BaseTags : public ClockedObject
     const Addr blkMask;
     /** The size of the cache. */
     const unsigned size;
+    
+    const unsigned secSize;
+    
+    const unsigned entrySize;
     /** The tag lookup latency of the cache. */
     const Cycles lookupLatency;
     /**
@@ -207,7 +211,10 @@ class BaseTags : public ClockedObject
     {
         return (addr & blkMask);
     }
-
+	int getEntrySize()
+	{
+		return entrySize;
+	}
     /**
      * Find the cache block given set and way
      * @param set The set of the block.
@@ -240,7 +247,9 @@ class BaseTags : public ClockedObject
     virtual CacheBlk* accessBlock(Addr addr, bool is_secure, Cycles &lat) = 0;
 
     virtual Addr extractTag(Addr addr) const = 0;
-
+	virtual void copyData(PacketPtr pkt, CacheBlk *blk){
+		std::memcpy(blk->data, pkt->getConstPtr<uint8_t>(), blkSize);
+	}
     virtual void insertBlock(PacketPtr pkt, CacheBlk *blk) = 0;
 
     virtual Addr regenerateBlkAddr(Addr tag, unsigned set) const = 0;

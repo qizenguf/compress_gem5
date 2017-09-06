@@ -141,7 +141,26 @@ class L2XBar(CoherentXBar):
 
 # One of the key coherent crossbar instances is the system
 # interconnect, tying together the CPU clusters, GPUs, and any I/O
+
+class L3XBar(CoherentXBar):
+    # 1024-bit crossbar by default
+    width = 128
+
+    # Assume that most of this is covered by the cache latencies, with
+    # no more than a single pipeline stage for any packet.
+    frontend_latency = 1
+    forward_latency = 0
+    response_latency = 1
+    snoop_response_latency = 1
+
+    # Use a snoop-filter by default, and set the latency to zero as
+    # the lookup is assumed to overlap with the frontend latency of
+    # the crossbar
+    snoop_filter = SnoopFilter(lookup_latency = 0)
+# One of the key coherent crossbar instances is the system
+# interconnect, tying together the CPU clusters, GPUs, and any I/O
 # coherent masters, and DRAM controllers.
+
 class SystemXBar(CoherentXBar):
     # 128-bit crossbar by default
     width = 16

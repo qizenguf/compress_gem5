@@ -48,7 +48,8 @@ class BaseTags(ClockedObject):
 
     # Get the block size from the parent (system)
     block_size = Param.Int(Parent.cache_line_size, "block size in bytes")
-
+    sector_size = Param.Int(Parent.sector_size, "#blocks size in a sector")
+    entry_size = Param.Int(Parent.entry_size, "entry size in a block")
     # Get the tag lookup latency from the parent (cache)
     tag_latency = Param.Cycles(Parent.tag_latency,
                                "The tag lookup latency for this cache")
@@ -70,6 +71,11 @@ class LRU(BaseSetAssoc):
     type = 'LRU'
     cxx_class = 'LRU'
     cxx_header = "mem/cache/tags/lru.hh"
+
+class SEC(BaseSetAssoc):
+    type = 'SEC'
+    cxx_class = 'SEC'
+    cxx_header = "mem/cache/tags/sec.hh"
 
 class RandomRepl(BaseSetAssoc):
     type = 'RandomRepl'

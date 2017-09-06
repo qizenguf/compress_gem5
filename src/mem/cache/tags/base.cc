@@ -56,7 +56,7 @@ using namespace std;
 
 BaseTags::BaseTags(const Params *p)
     : ClockedObject(p), blkSize(p->block_size), blkMask(blkSize - 1),
-      size(p->size),
+      size(p->size),secSize(p->sector_size), entrySize(p->entry_size),
       lookupLatency(p->tag_latency),
       accessLatency(p->sequential_access ?
                     p->tag_latency + p->data_latency :

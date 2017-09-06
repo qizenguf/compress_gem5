@@ -59,7 +59,7 @@ class CacheSet
   public:
     /** The associativity of this set. */
     int assoc;
-
+	int secSize;
     /** Cache blocks in this set, maintained in LRU order 0 = MRU. */
     Blktype **blks;
 
@@ -95,14 +95,28 @@ CacheSet<Blktype>::findBlk(Addr tag, bool is_secure, int& way_id) const
      * Way_id returns the id of the way that matches the block
      * If no block is found way_id is set to assoc.
      */
+     
+     // change the function to find the linked blocks
     way_id = assoc;
-    for (int i = 0; i < assoc; ++i) {
+    /*for (int i = 0; i < assoc; ++i) {
         if (blks[i]->tag == tag && blks[i]->isValid() &&
             blks[i]->isSecure() == is_secure) {
             way_id = i;
             return blks[i];
         }
-    }
+    }*/
+    for (int i = 0; i < assoc; ++i) {	
+        if ( (blks[i]->tag xor tag) < secSize && blks[i]->isValid() && blks[i]->isSecure() == is_secure) { // sector tag match	
+			Blktype * cur = blks[i];	
+			while(cur != nullptr ) {
+				if(cur->tag == tag) {
+					way_id = i;
+					return blks[i];
+				}
+				cur = cur->next;
+			}
+		}
+	}
     return nullptr;
 }
 
